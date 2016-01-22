@@ -100,6 +100,65 @@ public:
 		}
 		return head_->prev_->data_;
 	}
+	
+	class iterator {
+		Node* node_;
+		
+		iterator(Node* node)
+		: node_(node)
+		{}
+		
+		friend class List;
+	public:
+		int& operator*() {
+			return node_->data_;
+		}
+		
+		iterator& operator++() {
+			node_ = node_->next_;
+			return *this;
+		}
+		
+		iterator operator++(int) {
+			iterator res(*this);
+			node_ = node_->next_;
+			return res;
+		}
+		
+		bool operator==(const iterator& other) const {
+			return node_==other.node_;
+		}
+		
+		bool operator!=(const iterator& other) const {
+			return !(operator==(other));
+		}
+	};
+	
+	iterator begin() {
+		return iterator(head_->next_);
+	}
+	
+	iterator end() {
+		return iterator(head_->prev_);
+	}
+	
+	List(const List& other)
+	:
+	{
+		~List();
+		List l = new List(other);
+		iterator it = other.begin();
+		for(it; it != other.end(); ++it) {
+			l[it] = other[it];
+		}
+	}
+	
+	List& operator=(const List& other) {
+		if(this != other) {
+			List(other);
+		}
+		return *this;
+	}
 };
 
 int main() {
@@ -114,6 +173,11 @@ int main() {
 		cout << "Exeption Catched:" << endl;
 		cout << "\t@status = " << lerr.get_status() << ":  can't pop() on empty list" << endl;
 	}
+	
+	List::iterator it = l.begin();
+	cout << "l.begin() = " << *it << endl;
+	for(it; it != l.end(); ++it) cout << *it << ' ';
+	cout << endl;
 	return 0;
 }
 
