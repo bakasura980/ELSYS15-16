@@ -48,6 +48,10 @@ class Solution {
         }
         return 0;
     }
+    
+    public static String removeCharAt(String s, int pos) {
+      return s.substring(0, pos) + s.substring(pos + 1);
+   }
 
     public static void main(String args[]) {
         Scanner in = new Scanner(System.in);
@@ -56,28 +60,33 @@ class Solution {
         ArrayList<String> dictionary = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             String w = in.nextLine();
+            System.err.println(w + "---");
             dictionary.add(w);
         }
+        ArrayList<String> dictionaryCopy = dictionary;
         String letters = in.nextLine();
+        System.err.println(letters + "///");
         String lettersCopy;
         HashMap<String, Integer> wordsValues = new HashMap<>();
-        int words = n;
         
-        for(int i = 0; i < words; i++) {
+        for(int i = 0; i < dictionary.size(); i++) {
+             System.err.println("...");
             lettersCopy = letters;
             String word = dictionary.get(i);
+            boolean deleted = false;
             for(int j = 0; j < word.length(); j++) {
                 if(lettersCopy.indexOf(word.charAt(j)) >= 0) {
-                    StringBuilder sb = new StringBuilder(lettersCopy);
-                    sb.deleteCharAt(lettersCopy.indexOf(word.charAt(j)));
-                    lettersCopy = sb.toString();
+                    lettersCopy = removeCharAt(lettersCopy,
+                        lettersCopy.indexOf(word.charAt(j)));
                 }else{
+                    deleted = true;
+                    i--;
                     dictionary.remove(word);
-                    words--;
+                     System.err.println(word + "...");
+                    break;
                 }
             }
-            if(n - words != dictionary.size()) {
-                System.err.println(word);
+            if(!deleted) {
                 int wordPoints = 0;
                 for(int j = 0; j < word.length(); j++) {
                     wordPoints += getLetterVal(word.charAt(j));
@@ -86,12 +95,31 @@ class Solution {
             }
         }
         
-        Map.Entry<String,Integer> maxEntry = null;
+        Map.Entry<String,Integer> maxEntry1 = null;
         for(Map.Entry<String,Integer> entry : wordsValues.entrySet()) {
-            if (maxEntry == null || entry.getValue() > maxEntry.getValue()) {
-                maxEntry = entry;
+            if (maxEntry1 == null || entry.getValue() > maxEntry1.getValue()) {
+                maxEntry1 = entry;
             }
         }
-        System.out.println(maxEntry.getKey());
+        wordsValues.remove(maxEntry1.getKey());
+        if(wordsValues.size() > 0) {
+            Map.Entry<String,Integer> maxEntry2 = null;
+            for(Map.Entry<String,Integer> entry : wordsValues.entrySet()) {
+                if (maxEntry2 == null || entry.getValue() > maxEntry2.getValue()) {
+                    maxEntry2 = entry;
+                }
+            }
+            if(maxEntry1.getValue() == maxEntry2.getValue()){
+                if(dictionaryCopy.indexOf(maxEntry1.getKey()) < dictionaryCopy.indexOf(maxEntry2.getKey())) {
+                    System.out.println(maxEntry1.getKey());
+                }else{
+                    System.out.println(maxEntry2.getKey());   
+                }
+            }else{
+                System.out.println(maxEntry1.getKey());
+            }
+        }else{
+            System.out.println(maxEntry1.getKey());
+        }
     }
 }
