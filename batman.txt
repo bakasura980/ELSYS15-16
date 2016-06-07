@@ -1,0 +1,56 @@
+import java.util.*;
+import java.io.*;
+import java.math.*;
+
+/**
+ * Auto-generated code below aims at helping you parse
+ * the standard input according to the problem statement.
+ **/
+class Player {
+    
+    private static final String UP = "U";
+    private static final String DOWN = "D";
+    private static final String LEFT = "L";
+    private static final String RIGHT = "R";
+
+    public static void main(String args[]) {
+        Scanner in = new Scanner(System.in);
+        int W = in.nextInt(); // width of the building.
+        int H = in.nextInt(); // height of the building.
+        int N = in.nextInt(); // maximum number of turns before game over.
+        int X0 = in.nextInt();
+        int Y0 = in.nextInt();
+        
+        int maxX = W;
+        int maxY = H;
+        
+        int minX = 0;
+        int minY = 0;
+        
+        // game loop
+        while (true) {
+            String bombDir = in.next(); // the direction of the bombs from batman's current location (U, UR, R, DR, D, DL, L or UL)
+            
+            if(bombDir.contains(UP)) {
+                maxY = Y0;
+            }
+            
+            if(bombDir.contains(DOWN)) {
+                minY = Y0 + 1;
+            }
+            
+            if(bombDir.contains(LEFT)) {
+                maxX = X0;
+            }
+            
+            if(bombDir.contains(RIGHT)) {
+                minX = X0 + 1;
+            }
+            
+            X0 = (minX + maxX) / 2;
+            Y0 = (minY + maxY) / 2;
+            
+            System.out.println(X0 + " " + Y0);
+        }
+    }
+} //get mins and maxs and place batman in the center of the rectangle
