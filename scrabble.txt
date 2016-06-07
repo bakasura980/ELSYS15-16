@@ -1,0 +1,97 @@
+import java.util.*;
+import java.io.*;
+import java.math.*;
+import java.util.ArrayList; 
+import java.util.Collections; 
+import java.util.HashMap; 
+
+/**
+ * Auto-generated code below aims at helping you parse
+ * the standard input according to the problem statement.
+ **/
+class Solution {
+    private static int getLetterVal(char c) {
+        switch(c) {
+            case 'e':
+	        case 'a':
+	        case 'i':
+	        case 'o':
+	        case 'n':
+	        case 'r':
+	        case 't':
+	        case 'l':
+	        case 's':
+	        case 'u':
+	            return 1;
+	        case 'd':
+	        case 'g':
+	            return 2;
+	        case 'b':
+	        case 'c':
+	        case 'm':
+	        case 'p':
+	            return 3;
+	        case 'f':
+	        case 'h':
+	        case 'v':
+	        case 'w':
+	        case 'y':
+	            return 4;
+	        case 'k':
+	            return 5;
+	        case 'j':
+	        case 'x':
+	            return 8;
+	        case 'q':
+	        case 'z':
+	            return 10;
+        }
+        return 0;
+    }
+
+    public static void main(String args[]) {
+        Scanner in = new Scanner(System.in);
+        int n = in.nextInt();
+        in.nextLine();
+        ArrayList<String> dictionary = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            String w = in.nextLine();
+            dictionary.add(w);
+        }
+        String letters = in.nextLine();
+        String lettersCopy;
+        HashMap<String, Integer> wordsValues = new HashMap<>();
+        int words = n;
+        
+        for(int i = 0; i < words; i++) {
+            lettersCopy = letters;
+            String word = dictionary.get(i);
+            for(int j = 0; j < word.length(); j++) {
+                if(lettersCopy.indexOf(word.charAt(j)) >= 0) {
+                    StringBuilder sb = new StringBuilder(lettersCopy);
+                    sb.deleteCharAt(lettersCopy.indexOf(word.charAt(j)));
+                    lettersCopy = sb.toString();
+                }else{
+                    dictionary.remove(word);
+                    words--;
+                }
+            }
+            if(n - words != dictionary.size()) {
+                System.err.println(word);
+                int wordPoints = 0;
+                for(int j = 0; j < word.length(); j++) {
+                    wordPoints += getLetterVal(word.charAt(j));
+                }
+                wordsValues.put(word, wordPoints);
+            }
+        }
+        
+        Map.Entry<String,Integer> maxEntry = null;
+        for(Map.Entry<String,Integer> entry : wordsValues.entrySet()) {
+            if (maxEntry == null || entry.getValue() > maxEntry.getValue()) {
+                maxEntry = entry;
+            }
+        }
+        System.out.println(maxEntry.getKey());
+    }
+}
