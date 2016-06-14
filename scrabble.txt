@@ -1,0 +1,125 @@
+import java.util.*;
+import java.io.*;
+import java.math.*;
+import java.util.ArrayList; 
+import java.util.Collections; 
+import java.util.HashMap; 
+
+/**
+ * Auto-generated code below aims at helping you parse
+ * the standard input according to the problem statement.
+ **/
+class Solution {
+    private static int getLetterVal(char c) {
+        switch(c) {
+            case 'e':
+	        case 'a':
+	        case 'i':
+	        case 'o':
+	        case 'n':
+	        case 'r':
+	        case 't':
+	        case 'l':
+	        case 's':
+	        case 'u':
+	            return 1;
+	        case 'd':
+	        case 'g':
+	            return 2;
+	        case 'b':
+	        case 'c':
+	        case 'm':
+	        case 'p':
+	            return 3;
+	        case 'f':
+	        case 'h':
+	        case 'v':
+	        case 'w':
+	        case 'y':
+	            return 4;
+	        case 'k':
+	            return 5;
+	        case 'j':
+	        case 'x':
+	            return 8;
+	        case 'q':
+	        case 'z':
+	            return 10;
+        }
+        return 0;
+    }
+    
+    public static String removeCharAt(String s, int pos) {
+      return s.substring(0, pos) + s.substring(pos + 1);
+   }
+
+    public static void main(String args[]) {
+        Scanner in = new Scanner(System.in);
+        int n = in.nextInt();
+        in.nextLine();
+        ArrayList<String> dictionary = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            String w = in.nextLine();
+            System.err.println(w + "---");
+            dictionary.add(w);
+        }
+        ArrayList<String> dictionaryCopy = dictionary;
+        String letters = in.nextLine();
+        System.err.println(letters + "///");
+        String lettersCopy;
+        HashMap<String, Integer> wordsValues = new HashMap<>();
+        
+        for(int i = 0; i < dictionary.size(); i++) {
+             System.err.println("...");
+            lettersCopy = letters;
+            String word = dictionary.get(i);
+            boolean deleted = false;
+            for(int j = 0; j < word.length(); j++) {
+                if(lettersCopy.indexOf(word.charAt(j)) >= 0) {
+                    lettersCopy = removeCharAt(lettersCopy,
+                        lettersCopy.indexOf(word.charAt(j)));
+                }else{
+                    deleted = true;
+                    i--;
+                    dictionary.remove(word);
+                     System.err.println(word + "...");
+                    break;
+                }
+            }
+            if(!deleted) {
+                int wordPoints = 0;
+                for(int j = 0; j < word.length(); j++) {
+                    wordPoints += getLetterVal(word.charAt(j));
+                }
+                wordsValues.put(word, wordPoints);
+            }
+        }
+        
+        Map.Entry<String,Integer> maxEntry1 = null;
+        for(Map.Entry<String,Integer> entry : wordsValues.entrySet()) {
+            if (maxEntry1 == null || entry.getValue() > maxEntry1.getValue()) {
+                maxEntry1 = entry;
+            }
+        }
+        wordsValues.remove(maxEntry1.getKey());
+        if(wordsValues.size() > 0) {
+            Map.Entry<String,Integer> maxEntry2 = null;
+            for(Map.Entry<String,Integer> entry : wordsValues.entrySet()) {
+                if (maxEntry2 == null || entry.getValue() > maxEntry2.getValue()) {
+                    maxEntry2 = entry;
+                }
+            }
+            if(maxEntry1.getValue() == maxEntry2.getValue()){
+                if(dictionaryCopy.indexOf(maxEntry1.getKey()) < dictionaryCopy.indexOf(maxEntry2.getKey())) {
+                    System.out.println(maxEntry1.getKey());
+                }else{
+                    System.out.println(maxEntry2.getKey());   
+                }
+            }else{
+                System.out.println(maxEntry1.getKey());
+            }
+        }else{
+            System.out.println(maxEntry1.getKey());
+        }
+    }
+}

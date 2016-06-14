@@ -1,0 +1,4 @@
+calculate all budget
+budget/gift cost
+every player should give his money/(budget/gift cost)
+but should deal with the decimals
