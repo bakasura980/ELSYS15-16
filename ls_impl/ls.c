@@ -10,33 +10,23 @@
 #include<grp.h>
 #include<string.h>
 
-#define COLOR_RED     "\x1b[31m"
-#define COLOR_GREEN   "\x1b[32m"
-#define COLOR_YELLOW  "\x1b[33m"
-#define COLOR_BLUE    "\x1b[34m"
-#define COLOR_MAGENTA "\x1b[35m"
-#define COLOR_CYAN    "\x1b[36m"
 #define COLOR_RESET   "\x1b[0m"
-
-#define BOLDBLACK   "\033[1m\033[30m"
-#define BOLDRED     "\033[1m\033[31m"
 #define BOLDGREEN   "\033[1m\033[32m"
-#define BOLDYELLOW  "\033[1m\033[33m"
 #define BOLDBLUE    "\033[1m\033[34m"
-#define BOLDMAGENTA "\033[1m\033[35m"
-#define BOLDCYAN    "\033[1m\033[36m"
-#define BOLDWHITE   "\033[1m\033[37m"
 
 bool recursively = false;
 bool more_info = false;
-bool hidden_files = true;
+bool hidden_files = false;
 
 struct stat file_stat;
 int blocks = 0;
 
 bool isDir(char *filename) {
   struct stat file_stat;
-  stat(filename, &file_stat);
+  if(stat(filename, &file_stat) == -1) {
+    perror(filename);
+    exit(EXIT_FAILURE);
+  }
   if(S_ISDIR(file_stat.st_mode)) {
     return true;
   }else{
@@ -108,7 +98,6 @@ void print_file_name(char *filename) {
 }
 
 void print_file_info(char *dirname, char *filename) {
-  stat(path_creator(dirname, filename), &file_stat);
   print_permissions();
   print_link();
   print_owner();
@@ -116,10 +105,37 @@ void print_file_info(char *dirname, char *filename) {
   print_size();
   print_date();
   print_file_name(filename);
+  count_blocks();
+}
+
+void parse(char *dirname, char *filename) {
+  if(stat(path_creator(dirname, filename), &file_stat) == -1) {
+    perror(path_creator(dirname, filename));
+    exit(EXIT_FAILURE);
+  }
+  if(hidden_files && filename[0] == '.') {
+    if(more_info) {
+      print_file_info(dirname, filename);
+    }else{
+      print_file_name(filename);
+    }
+  }else{
+    if(filename[0] != '.') {
+      if(more_info) {
+        print_file_info(dirname, filename);
+      }else{
+        print_file_name(filename);
+      }
+    }
+  }
 }
 
 void traverse(char *dirname) {
   DIR *dir = opendir(dirname);
+  if(dir == NULL) {
+    perror(dirname);
+    exit(EXIT_FAILURE);
+  }
   struct dirent *entry;
 
   while ((entry = readdir(dir)) != NULL) {
@@ -127,80 +143,34 @@ void traverse(char *dirname) {
       parse(dirname, entry->d_name);
       continue;
     }
-    if(recursively && isDir(path_creator(dirname, entry->d_name))) {
+    if(recursively) {
+      if(isDir(path_creator(dirname, entry->d_name))) {
         if(hidden_files) {
           printf("%s:\n", path_creator(dirname, entry->d_name));
           traverse(path_creator(dirname, entry->d_name));
         }else{
           if(entry->d_name[0] != '.') {
-            printf("%s%s%s\n", BOLDRED,entry->d_name,COLOR_RESET);
-            printf("%s:\n", path_creator(dirname, entry->d_name));
+            printf("%s:\n\n", path_creator(dirname, entry->d_name));
             traverse(path_creator(dirname, entry->d_name));
           }
         }
-        /*
-        printf("%s:\n", path_creator(dirname, entry->d_name));
-        traverse(path_creator(dirname, entry->d_name));
-        */
+      }else{
+        parse(dirname, entry->d_name);
+      }
     }else{
       parse(dirname, entry->d_name);
-      /*if(hidden_files) {
-        if(entry->d_name[0] != '.') {
-          if(more_info) {
-            print_file_info(dirname, entry->d_name);
-          }else{
-            printf("%s\n", entry->d_name);
-          }
-        }
-      }else{
-        if(more_info) {
-          print_file_info(dirname, entry->d_name);
-        }else{
-          printf("%s\n", entry->d_name);
-        }
-      }*/
-    }
-    /*if(hidden_files) {
-      if(entry->d_name[0] != '.') {
-        if(more_info) {
-          print_file_info(dirname, entry->d_name);
-        }else{
-          printf("%s\n", entry->d_name);
-        }
-      }
-    }else{
-      if(more_info) {
-        print_file_info(dirname, entry->d_name);
-      }else{
-        printf("%s\n", entry->d_name);
-      }
-    }*/
-  }
-
-  closedir(dir);
-}
-
-void parse(char *dirname, char *filename) {
-  if(hidden_files) {
-    if(filename[0] != '.') {
-      if(more_info) {
-        print_file_info(dirname, filename);
-      }else{
-        print_file_name(filename);
-        //printf("%s\n", filename);
-      }
-    }
-  }else{
-    if(more_info) {
-      print_file_info(dirname, filename);
-    }else{
-      print_file_name(filename);
-      //printf("%s\n", filename);
     }
   }
+  if(closedir(dir) == -1) {
+    perror(dirname);
+  }
+  if (more_info) {
+    printf("total %d\n", blocks);
+  }
+  blocks = 0;
 }
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char **argv) {
   int opt;
 
   while ((opt = getopt(argc, argv, "laR")) != -1) {
@@ -209,7 +179,7 @@ int main(int argc, char const *argv[]) {
         more_info = true;
         break;
       case 'a':
-        hidden_files = false;
+        hidden_files = true;
         break;
       case 'R':
         recursively = true;
@@ -239,12 +209,8 @@ int main(int argc, char const *argv[]) {
         if(argv[i][0] != '-') {
           if(isDir(argv[i])) {
             if(argc - options_counter > 2) {
-              print_file_name(argv[i]);
-              printf("%c[2K", 27);
-              printf(":\n");
-              //printf("%s:\n", argv[i]);
+              printf("%s:\n\n", argv[i]);
             }
-              //printf("1232131231231\n");
             traverse(argv[i]);
           }else{
             if(existance(argv[i])) {
@@ -252,7 +218,6 @@ int main(int argc, char const *argv[]) {
                 print_file_info(path, argv[i]);
               }else{
                 print_file_name(argv[i]);
-                //printf("%s\n", argv[i]);
               }
             }else{
               printf("%s can not be accessed\n", argv[i]);
@@ -264,5 +229,3 @@ int main(int argc, char const *argv[]) {
   }
   return 0;
 }
-
-//http://www.cquestions.com/2008/01/c-program-for-sorting-of-string.html
